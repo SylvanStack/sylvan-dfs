@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: sylvan-dfs
+
+
+sylvan-dfs:
+  path: E:\2024-Plan\practices\x\sylvan-dfs\upload
+  autoBackup: false
+  backupUrl: http://localhost:8081/uploadFF
