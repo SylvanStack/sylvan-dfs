@@ -20,7 +20,9 @@ import java.io.*;
 import java.util.UUID;
 
 import static com.yuanstack.sylvan.dfs.sync.HttpSyncer.X_FILENAME;
+import static com.yuanstack.sylvan.dfs.sync.HttpSyncer.X_ORIG_FILE_NAME;
 import static com.yuanstack.sylvan.dfs.utils.FileUtils.getMimeType;
+import static com.yuanstack.sylvan.dfs.utils.FileUtils.getUUIDFile;
 
 /**
  * @author Sylvan
@@ -52,10 +54,15 @@ public class FileController {
         boolean neeSync = false;
         String filename = request.getHeader(X_FILENAME);
         // 同步文件到backup
-        if (filename == null || filename.isEmpty()) {
+        String originalFilename = file.getOriginalFilename();
+        if (filename == null || filename.isEmpty()) { // upload上传文件
             neeSync = true;
-//            filename = file.getOriginalFilename();
-            filename = FileUtils.getUUIDFile(file.getOriginalFilename());
+            filename = getUUIDFile(originalFilename);
+        } else { // 同步文件
+            String xor = request.getHeader(X_ORIG_FILE_NAME);
+            if (xor != null && !xor.isEmpty()) {
+                originalFilename = xor;
+            }
         }
         String subdir = FileUtils.getSubDir(filename);
         File dest = new File(uploadPath + "/" + subdir + "/" + filename);
@@ -64,7 +71,7 @@ public class FileController {
         // 2. 处理meta
         FileMeta meta = new FileMeta();
         meta.setName(filename);
-        meta.setOriginalFilename(file.getOriginalFilename());
+        meta.setOriginalFilename(originalFilename);
         meta.setSize(file.getSize());
         if (autoMd5) {
             meta.getTags().put("md5", DigestUtils.md5DigestAsHex(new FileInputStream(dest)));
@@ -81,7 +88,7 @@ public class FileController {
         // 3. 同步到backup
         // 同步文件到backup
         if (neeSync) {
-            httpSyncer.sync(dest, backupUrl);
+            httpSyncer.sync(dest, backupUrl, originalFilename);
         }
 
         return filename;
