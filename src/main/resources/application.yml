@@ -6,4 +6,5 @@ spring:
 sylvan-dfs:
   path: E:\2024-Plan\practices\x\sylvan-dfs\upload
   autoBackup: false
+  autoMd5: true
   backupUrl: http://localhost:8081/uploadFF
